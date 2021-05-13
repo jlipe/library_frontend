@@ -1,17 +1,35 @@
-import { useQuery } from '@apollo/client'
-import React from 'react'
-import { ALL_BOOKS } from '../queries'
+import { useQuery, useLazyQuery, useApolloClient } from '@apollo/client'
+import React, { useEffect, useState } from 'react'
+import { GENRES, ALL_BOOKS } from '../queries'
 
 const Books = (props) => {
-  const books = useQuery(ALL_BOOKS)
+  let data = props.books
+  const genres = props.books
 
   if (!props.show) {
     return null
   }
 
-  if (books.loading) {
-    return <div>Loading...</div>
+  if (props.loading) {
+    return null
   }
+
+  const genresSet = new Set()
+
+  for (let i = 0; i < genres.allBooks.length; i++) {
+    for (let j = 0; j < genres.allBooks[i].genres.length; j++) {
+      genresSet.add(genres.allBooks[i].genres[j])
+    }
+  }
+
+  const renderedButtons = (
+    [...genresSet].map(g => {
+      return (
+        <button onClick={() => props.setGenreFilter(g)} key={g}>{g}</button>
+      )
+    })
+  )
+
 
   return (
     <div>
@@ -20,7 +38,9 @@ const Books = (props) => {
       <table>
         <tbody>
           <tr>
-            <th></th>
+            <th>
+              title
+            </th>
             <th>
               author
             </th>
@@ -28,15 +48,18 @@ const Books = (props) => {
               published
             </th>
           </tr>
-          {books.data.allBooks.map(a =>
-            <tr key={a.title}>
-              <td>{a.title}</td>
-              <td>{a.author.name}</td>
-              <td>{a.published}</td>
-            </tr>
+          {
+          data.allBooks.map(a =>
+              <tr key={a.title}>
+                <td>{a.title}</td>
+                <td>{a.author.name}</td>
+                <td>{a.published}</td>
+              </tr>
           )}
         </tbody>
       </table>
+      {renderedButtons}
+      <button onClick={() => props.setGenreFilter(null)}>all books</button>
     </div>
   )
 }
